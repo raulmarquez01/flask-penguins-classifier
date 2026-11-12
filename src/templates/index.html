@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clasificador de pingüinos de Palmer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main>
+  <h1>Clasificador de pingüinos de Palmer</h1>
+  <p class="intro">Indica la isla, el sexo y cuatro medidas. El modelo estima si el pingüino es Adelie, Chinstrap o Gentoo.</p>
+
+  {% if errores %}
+  <ul class="errores" role="alert">
+    {% for e in errores %}<li>{{ e }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  <form method="post">
+    <div class="campo">
+      <label for="island">Isla</label>
+      <select id="island" name="island" required>
+        <option value="" disabled {% if not valores.get('island') %}selected{% endif %}>Elige una isla</option>
+        {% for i in islas %}<option value="{{ i }}" {% if valores.get('island') == i %}selected{% endif %}>{{ i }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="campo">
+      <label for="sex">Sexo</label>
+      <select id="sex" name="sex" required>
+        <option value="" disabled {% if not valores.get('sex') %}selected{% endif %}>Elige una opción</option>
+        {% for clave, texto in sexos.items() %}<option value="{{ clave }}" {% if valores.get('sex') == clave %}selected{% endif %}>{{ texto }}</option>{% endfor %}
+      </select>
+    </div>
+    {% for nombre, datos in campos.items() %}
+    <div class="campo">
+      <label for="{{ nombre }}">{{ datos[0] }}</label>
+      <input id="{{ nombre }}" name="{{ nombre }}" type="number" step="0.1" min="{{ datos[1] }}" max="{{ datos[2] }}"
+             inputmode="decimal" required value="{{ valores.get(nombre, '') }}" placeholder="{{ datos[1] }} a {{ datos[2] }}">
+    </div>
+    {% endfor %}
+    <button type="submit">Clasificar</button>
+  </form>
+
+  {% if resultado %}
+  <section class="resultado" aria-live="polite">
+    <p class="etiqueta">Especie estimada</p>
+    <h2 class="especie">{{ resultado.especie }}</h2>
+    <p>Probabilidad estimada por el modelo: {{ resultado.probabilidad }} %</p>
+    <ul class="barras">
+      {% for especie, p in resultado.todas %}
+      <li><span>{{ especie }}</span><div class="barra"><i style="width: {{ p }}%"></i></div><b>{{ p }} %</b></li>
+      {% endfor %}
+    </ul>
+    {% for a in avisos %}<p class="aviso">{{ a }}</p>{% endfor %}
+  </section>
+  {% endif %}
+
+  <footer>
+    Modelo: regresión logística entrenada con 273 pingüinos del conjunto Palmer Penguins (342 en total, tres islas).
+    Acertó los 69 de la prueba, pero con tan pocos datos es una estimación, no una garantía.
+    No sirve para otras especies ni para islas distintas de las tres de los datos.
+  </footer>
+</main>
+</body>
+</html>
